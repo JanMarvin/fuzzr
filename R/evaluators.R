@@ -204,9 +204,11 @@ assertthat::on_failure(is_named) <- function(call, env) {
 named_cross_n <- function(ll) {
 
   # Cross the values of the list...
-  crossed_values <- purrr::cross(ll)
+  ## was crossed_values <- purrr::cross(ll)
+  crossed_values <- purrr::transpose(tidyr::expand_grid(!!!ll))
   # ... and then cross the names
-  crossed_names <- purrr::cross(purrr::map(ll, names))
+  ## crossed_names <- purrr::cross(purrr::map(ll, names))
+  crossed_names <- purrr::transpose(tidyr::expand_grid(!!!purrr::map(ll, names)))
 
   # Then map through both values and names in order to
   purrr::map2(crossed_values, crossed_names, function(x, y) {

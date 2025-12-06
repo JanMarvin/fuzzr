@@ -11,12 +11,15 @@ URL: https://github.com/mdlincoln/fuzzr
 BugReports: https://github.com/mdlincoln/fuzzr/issues
 Imports: 
     assertthat,
+    dplyr,
     progress,
-    purrr
+    purrr,
+    tidyr
 Suggests: 
     knitr,
     rmarkdown,
     testthat
 VignetteBuilder: knitr
 LazyData: TRUE
-RoxygenNote: 6.0.1
+RoxygenNote: 7.3.3
+Encoding: UTF-8

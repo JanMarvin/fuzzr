@@ -5,8 +5,14 @@
 \alias{p_fuzz_function}
 \title{Fuzz-test a function}
 \usage{
-fuzz_function(fun, arg_name, ..., tests = test_all(), check_args = TRUE,
-  progress = interactive())
+fuzz_function(
+  fun,
+  arg_name,
+  ...,
+  tests = test_all(),
+  check_args = TRUE,
+  progress = interactive()
+)
 
 p_fuzz_function(fun, .l, check_args = TRUE, progress = interactive())
 }
