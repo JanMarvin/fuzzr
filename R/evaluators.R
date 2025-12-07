@@ -31,6 +31,9 @@
 #' @seealso \code{\link{fuzz_results}} and
 #'   \code{\link{as.data.frame.fuzz_results}} to access fuzz test results.
 #'
+#' @importFrom purrr map map2 set_names map_chr reduce map_int modify_depth detect transpose walk
+#' @importFrom tidyr expand_grid
+#' @importFrom progress progress_bar
 #' @export
 #' @examples
 #' # Evaluate the 'formula' argument of lm, passing additional required variables
@@ -45,27 +48,32 @@ fuzz_function <- function(fun, arg_name, ..., tests = test_all(), check_args = T
   assertthat::assert_that(is_named_l(tests))
 
   # Collect the unevaluated names of variables passed to the original call,
-  # keeping only those passed in as ... These will be used in the named list
-  # passed to p_fuzz_function
-  dots_call_names <- purrr::map_chr(as.list(match.call()), deparse)
-  .dots = list(...)
-  dots_call_names <- dots_call_names[names(.dots)]
+  # keeping only those passed in as ...
+  # Note: match.call() captures the exact call structure.
+  mc <- match.call(expand.dots = FALSE)
+  # extract the ... args if they exist
+  dots_call_names <- if (!is.null(mc$...)) purrr::map_chr(as.list(mc$...), deparse) else character(0)
+
+  .dots <- list(...)
 
   # Check that arg_name is a string, and the tests passed is a named list
   assertthat::assert_that(assertthat::is.string(arg_name), is_named_l(tests))
 
   # Check that arguments passed to fun actually exist in fun
-  if (check_args)
+  if (check_args) {
     assertthat::assert_that(
       assertthat::has_args(fun, arg_name),
-      assertthat::has_args(fun, names(.dots)))
+      assertthat::has_args(fun, names(.dots))
+    )
+  }
 
-  # Construct a list of arguments for p_fuzz_function, with tests assigned to
-  # arg_name, and the values passed via ... saved as lists named after their
-  # deparsed variable names.
+  # Construct a list of arguments for p_fuzz_function.
+  # We pair the 'tests' with 'arg_name', and wrap the static '...' args into lists
+  # so they are treated as single-item test lists by p_fuzz_function.
   test_args <- c(
     purrr::set_names(list(tests), arg_name),
-    purrr::map2(.dots, dots_call_names, function(x, y) purrr::set_names(list(x), y)))
+    purrr::map2(.dots, names(.dots), function(x, y) purrr::set_names(list(x), y))
+  )
 
   p_fuzz_function(fun, .l = test_args, check_args = check_args, progress = progress)
 }
@@ -91,44 +99,50 @@ p_fuzz_function <- function(fun, .l, check_args = TRUE, progress = interactive()
     fun_name <- attr(fun, "fun_name")
   }
 
-  if (check_args)
+  if (check_args) {
     assertthat::assert_that(assertthat::has_args(fun, names(.l)))
+  }
 
   # Ensure .l is a named list of named lists
   is_named_ll(.l)
 
-  # Replace any NULL test values with .null alias.
+  # Replace any NULL test values with .null alias because NULLs are deleted in lists
   .l <- purrr::map(.l, function(li) {
     purrr::map(li, function(lli) {
-      if (is.null(lli)) {
-        .null
-      } else {
-        lli
-      }
+      if (is.null(lli)) .null else lli
     })
   })
 
-  # Warn if combination of tests is potentially massive
+  # Safety Check: Combinations
   num_tests <- purrr::reduce(purrr::map_int(.l, length), `*`)
+
   if (num_tests >= 500000) {
-    m <- utils::menu(choices = c("Yes", "No"), title = paste("The supplied tests have", num_tests, "combinations, which may be prohibitively large to calculate. Attempt to proceed?"))
-    if (m != 1)
-      return(NULL)
+    msg <- paste("The supplied tests have", num_tests, "combinations, which may be prohibitively large.")
+
+    if (interactive()) {
+      m <- utils::menu(choices = c("Yes", "No"), title = paste(msg, "Attempt to proceed?"))
+      if (m != 1) return(invisible(NULL))
+    } else {
+      stop(paste(msg, "Aborting non-interactive session."))
+    }
   }
 
   # Generate the list of tests to be done
   test_list <- named_cross_n(.l)
 
   # After crossing, restore NULL test values
-  test_list <- purrr::modify_depth(test_list, 3, function(x) {
-      if (inherits(x, what = "fuzz-null")) {
-        NULL
-      } else {
-        x
+  # Using modify_depth to target the 'test_value' specifically is safer/clearer
+  test_list <- purrr::map(test_list, function(x) {
+    purrr::map(x, function(y) {
+      if (inherits(y[["test_value"]], "fuzz-null")) {
+        y[["test_value"]] <- NULL
       }
+      y
     })
+  })
 
   # Create a progress bar, if called for
+  pb <- NULL
   if (progress) {
     pb <- progress::progress_bar$new(
       format = " running tests [:bar] :percent eta: :eta",
@@ -137,22 +151,21 @@ p_fuzz_function <- function(fun, .l, check_args = TRUE, progress = interactive()
   }
 
   # For each test combination...
-  fr <- purrr::map(
-    test_list, function(x) {
-      if (exists("pb")) pb$tick()
+  fr <- purrr::map(test_list, function(x) {
+      if (!is.null(pb)) pb$tick()
 
       # Extract values for testing
-      arglist <- purrr::map(x, getElement, name = "test_value")
+      arglist <- purrr::map(x, "test_value")
 
       # Extract names of tests
-      testnames <- purrr::map(x, getElement, name = "test_name")
+      testnames <- purrr::map(x, "test_name")
 
-      # Create a result list with both the results of try_fuzz, as well as a
-      # named list pairing argument names with the test names supplied to them
-      # for this particular round
-      res <- list(test_result = try_fuzz(fun = fun, fun_name = fun_name,
-                                         all_args = arglist))
-      res[["test_name"]] <- testnames
+      # Execute the fuzz test
+      # We construct the result list immediately
+      res <- list(
+        test_result = try_fuzz(fun = fun, fun_name = fun_name, all_args = arglist),
+        test_name = testnames
+      )
       res
     })
 
@@ -162,17 +175,15 @@ p_fuzz_function <- function(fun, .l, check_args = TRUE, progress = interactive()
 # Internal functions ----
 
 # Pass NULL as a test value
-#
-# Because it is difficult to work with NULLs in lists as required by most of
-# the fuzzr package, this function works as an alias to pass NULL values to
-# function arguments for testing.
 .null <- structure(list(), class = "fuzz-null")
 
 # This set of assertions need to be checked for both functions
 fuzz_asserts <- function(fun, check_args, progress) {
   assertthat::assert_that(
-    is.function(fun), assertthat::is.flag(check_args),
-    assertthat::is.flag(progress))
+    is.function(fun),
+    assertthat::is.flag(check_args),
+    assertthat::is.flag(progress)
+  )
 }
 
 # Is a list named, and is each of its elements also a named list?
@@ -183,7 +194,7 @@ is_named_ll <- function(l) {
 
 # Is every element of a list named?
 is_named_l <- function(l) {
-  is.list(l) & is_named(l)
+  is.list(l) && is_named(l)
 }
 
 assertthat::on_failure(is_named_l) <- function(call, env) {
@@ -193,7 +204,7 @@ assertthat::on_failure(is_named_l) <- function(call, env) {
 # Check that object has no blank names
 is_named <- function(x) {
   nm <- names(x)
-  !is.null(nm) & all("" != nm)
+  !is.null(nm) && all(nm != "")
 }
 
 assertthat::on_failure(is_named) <- function(call, env) {
@@ -202,15 +213,13 @@ assertthat::on_failure(is_named) <- function(call, env) {
 
 # Cross a list of named lists
 named_cross_n <- function(ll) {
-
-  # Cross the values of the list...
-  ## was crossed_values <- purrr::cross(ll)
+  # Use !!! to splice the list, and transpose to convert the Tibble to a List of Lists
   crossed_values <- purrr::transpose(tidyr::expand_grid(!!!ll))
+
   # ... and then cross the names
-  ## crossed_names <- purrr::cross(purrr::map(ll, names))
   crossed_names <- purrr::transpose(tidyr::expand_grid(!!!purrr::map(ll, names)))
 
-  # Then map through both values and names in order to
+  # Now map2 iterates over the *rows* (combinations) just like purrr::cross did
   purrr::map2(crossed_values, crossed_names, function(x, y) {
     purrr::map2(x, y, function(m, n) {
       list(
@@ -221,16 +230,14 @@ named_cross_n <- function(ll) {
   })
 }
 
-# Custom tryCatch/withCallingHandlers function to catch messages, warnings, and
-# errors along with any values returned by the expression. Returns a list of
-# value, messages, warnings, and errors.
+# Custom tryCatch/withCallingHandlers
 try_fuzz <- function(fun, fun_name, all_args) {
 
   call <- list(fun = fun_name, args = all_args)
-  messages <- NULL
-  output <- NULL
-  warnings <- NULL
-  errors <- NULL
+  messages <- character(0)
+  warnings <- character(0)
+  errors <- character(0)
+  value <- NULL # Initialize value
 
   message_handler <- function(c) {
     messages <<- c(messages, conditionMessage(c))
@@ -247,14 +254,6 @@ try_fuzz <- function(fun, fun_name, all_args) {
     return(NULL)
   }
 
-  # Little trick: that first tryCatch() will return values from the expression
-  # to the "value" index in this list, but will pass errors to error_handler
-  # (which returns NULL "value", incidentally.) In the event of messages or
-  # warnings, handling is passed up to withCallingHandlers, which passes them
-  # down again to message_handler or warning_handler, respectively. Once the
-  # expression is done evaluating, messages, warnings, and errors are assigned
-  # to the list, which is returned as the final result of try_fuzz
-
   output <- utils::capture.output({
     value <- withCallingHandlers(
       tryCatch(do.call(fun, args = all_args), error = error_handler),
@@ -262,16 +261,15 @@ try_fuzz <- function(fun, fun_name, all_args) {
       warning = warning_handler
     )}, type = "output")
 
-  if (length(output) == 0) {
-    output <- NULL
-  }
+  # Convert empty output to NULL for consistency
+  if (length(output) == 0) output <- NULL
 
   list(
     call = call,
     value = value,
     output = output,
-    messages = messages,
-    warnings = warnings,
-    errors = errors
+    messages = if (length(messages) > 0) messages else NULL,
+    warnings = if (length(warnings) > 0) warnings else NULL,
+    errors = if (length(errors) > 0) errors else NULL
   )
 }

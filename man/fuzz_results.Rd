@@ -14,8 +14,8 @@ fuzz_call(fr, index = NULL, ...)
 \item{fr}{\code{fuzz_results} object}
 
 \item{index}{The test index (by position) to access. Same as the
-\code{results_index} in the data frame returned by
-\code{\link{as.data.frame.fuzz_results}}.}
+   \code{results_index} in the data frame returned by
+   \code{\link{as.data.frame.fuzz_results}}.}
 
 \item{...}{Additional arguments must be named regex patterns that will be used to match against test names. The names of the patterns must match the function argument name(s) whose test names you wish to match.}
 }

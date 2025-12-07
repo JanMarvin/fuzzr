@@ -12,20 +12,20 @@
 \item{...}{Additional arguments to be passed to or from methods.}
 
 \item{delim}{The delimiter to use for fields like \code{messages} or
-\code{warnings} in which there may be multiple results.}
+    \code{warnings} in which there may be multiple results.}
 }
 \value{
 A data frame with the following columns: \describe{
-  \item{\code{fuzz_input}}{The name of the fuzz test performed.}
-  \item{\code{output}}{Delimited outputs to the command line from the process, if applicable.}
-  \item{\code{messages}}{Delimited messages, if applicable.}
-  \item{\code{warnings}}{Delimited warnings, if applicable.}
-  \item{\code{errors}}{Error returned, if applicable.}
-  \item{\code{value_classes}}{Delimited classes of the object returned by the
-   function, if applicable}
-  \item{\code{results_index}}{Index of \code{x} from which the summary was
-   produced.}
-  }
+   \item{\code{fuzz_input}}{The name of the fuzz test performed.}
+   \item{\code{output}}{Delimited outputs to the command line from the process, if applicable.}
+   \item{\code{messages}}{Delimited messages, if applicable.}
+   \item{\code{warnings}}{Delimited warnings, if applicable.}
+   \item{\code{errors}}{Error returned, if applicable.}
+   \item{\code{value_classes}}{Delimited classes of the object returned by the
+    function, if applicable}
+   \item{\code{results_index}}{Index of \code{x} from which the summary was
+    produced.}
+   }
 }
 \description{
 Summarize fuzz test results as a data frame

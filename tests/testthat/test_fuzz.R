@@ -53,7 +53,7 @@ test_that("Invalid tests throw errors", {
 
 test_that("Over-large test suites raise a menu", {
   skip_if_not(!interactive())
-  expect_error(p_fuzz_function(lm, .l = list(a = test_all(), b = test_all(), c = test_all(), d = test_all()), check_args = FALSE), regexp = "cannot be used non-interactively")
+  expect_error(p_fuzz_function(lm, .l = list(a = test_all(), b = test_all(), c = test_all(), d = test_all()), check_args = FALSE), regexp = "which may be prohibitively large. Aborting non-interactive session")
 })
 
 # fuzz_results ----
@@ -72,7 +72,7 @@ agrep_p_fuzz <- p_fuzz_function(agrep, list(pattern = test_char(), x = test_char
 
 test_that("data frame has correct names", {
   expect_equivalent(as.data.frame(agrep_fuzz)$pattern, names(test_char()))
-  expect_equivalent(names(as.data.frame(agrep_p_fuzz)), c("pattern", "x", "output", "messages", "warnings", "errors", "result_classes", "results_index"))
+  expect_equivalent(names(as.data.frame(agrep_p_fuzz)), c("pattern", "x", "output", "messages", "warnings", "errors", "value_classes", "results_index"))
 })
 
 char_empty_index <- lm_df[lm_df$subset == "char_empty", ]$results_index
@@ -104,7 +104,7 @@ test_that("Values can be extracted from a fuzz_results object by regex", {
   expect_error(fuzz_call(agrep_p_fuzz, q = "char_single"))
 
   expect_null(lm_1_search_val)
-  # expect_s3_class(lm_single_search_val, "lm")
+  expect_s3_class(lm_single_search_val, "lm")
   expect_null(lm_fail_search_val)
   expect_equivalent(agrep_multi_search_val, 1L)
   expect_equivalent(agrep_multi_search_call$fun, "agrep")
@@ -142,7 +142,7 @@ test_that("Multi-class returns can be handled appropriately", {
   expect_true(is.character(fdf$messages))
   expect_true(is.character(fdf$warnings))
   expect_true(is.character(fdf$errors))
-  expect_true(is.character(fdf$result_classes))
+  expect_true(is.character(fdf$value_classes))
   expect_match(fdf[fdf$x == "int_single", ]$errors, "Error at 1")
   expect_match(fdf[fdf$x == "char_multiple", ]$warnings, "warn 1; warn 2")
   expect_match(fdf$messages[1], "|")
