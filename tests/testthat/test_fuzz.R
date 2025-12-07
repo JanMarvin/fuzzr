@@ -8,7 +8,7 @@ test_that("all test_ functions return a named list", {
   purrr::walk(testnames, function(x) {
     expect_true(purrr::is_list(get(x)()))
     purrr::walk(x, function(y) is_named(y))
-    })
+  })
 
   expect_true(all(alltestnames %in% names(test_all())))
 })
@@ -130,7 +130,7 @@ test_that("Multi-class returns can be handled appropriately", {
     warning("warn 2")
     message("mess 2")
     if (length(x) == 1) if (x == 1) stop("Error at 1")
-    return(r)
+    r
   }
 
   fmf <- fuzz_function(mf, "x")

@@ -49,10 +49,6 @@ fuzz_function <- function(fun, arg_name, ..., tests = test_all(), check_args = T
 
   # Collect the unevaluated names of variables passed to the original call,
   # keeping only those passed in as ...
-  # Note: match.call() captures the exact call structure.
-  mc <- match.call(expand.dots = FALSE)
-  # extract the ... args if they exist
-  dots_call_names <- if (!is.null(mc$...)) purrr::map_chr(as.list(mc$...), deparse) else character(0)
 
   .dots <- list(...)
 
@@ -233,9 +229,11 @@ named_cross_n <- function(ll) {
         test_name = n,
         test_value = m
       )
-    }) |> purrr::set_names(argument_names)
+    }) |>
+      purrr::set_names(argument_names)
 
-  }) |> purrr::set_names(NULL) # Ensures the outer list has no confusing names
+  }) |>
+    purrr::set_names(NULL) # Ensures the outer list has no confusing names
 }
 
 # Custom tryCatch/withCallingHandlers
@@ -259,7 +257,7 @@ try_fuzz <- function(fun, fun_name, all_args) {
 
   error_handler <- function(c) {
     errors <<- c(errors, conditionMessage(c))
-    return(NULL)
+    NULL
   }
 
   output <- utils::capture.output({

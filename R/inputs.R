@@ -174,7 +174,7 @@ test_df <- function() {
     df_complete = datasets::iris,
     df_empty = data.frame(NULL),
     df_one_row = datasets::iris[1, ],
-    df_one_col = datasets::iris[ , 1, drop = FALSE], # Added drop = FALSE
+    df_one_col = datasets::iris[, 1, drop = FALSE], # Added drop = FALSE
     df_with_na = iris_na
   )
 }

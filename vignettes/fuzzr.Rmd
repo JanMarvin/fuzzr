@@ -34,7 +34,7 @@ Let's test this with a full battery of fuzz tests:
 
 ```{r, results = "asis"}
 library(fuzzr)
-# Note that, while we are specifically fuzz testing the 'n' argument, we still 
+# Note that, while we are specifically fuzz testing the 'n' argument, we still
 # need to provide an 'x' argument to pass along to my_function(). We do not have
 # to supply a delimiter, as my_function() declares a default value for this
 # argument.
@@ -70,7 +70,7 @@ my_function_2 <- function(x, n, delim = " - ") {
 }
 
 # We will abbreviate this check by only testing against double and date vectors
-fuzz_df_2 <- as.data.frame(fuzz_function(my_function_2, "n", x = "fuzz", 
+fuzz_df_2 <- as.data.frame(fuzz_function(my_function_2, "n", x = "fuzz",
                                          tests = c(test_dbl(), test_date())))
 
 knitr::kable(fuzz_df_2)

@@ -33,7 +33,7 @@ as.data.frame.fuzz_results <- function(x, ..., delim = "; ") {
     # (The index 'i' is recycled to match the number of rows in df_part)
     df_part[["results_index"]] <- i
 
-    return(df_part)
+    df_part
   })
 
   # Combine the indexed data frames
@@ -97,7 +97,7 @@ search_results <- function(fr, index, ...) {
       all(purrr::map2_lgl(.dots, names(.dots), function(p, n) {
         # FIX: Use any() to convert the vector of logical results from grepl()
         # into a single logical value required by purrr::map2_lgl().
-        return(any(grepl(p, x = el[["test_name"]][[n]])))
+        any(grepl(p, x = el[["test_name"]][[n]]))
       }))
     })
 
@@ -121,9 +121,9 @@ parse_fuzz_result_concat <- function(fr, delim) {
   elem_collapse <- function(elem) {
     # Check for NULL or zero length before collapsing
     if (is.null(elem) || length(elem) == 0) {
-      return(NA_character_)
+      NA_character_
     } else {
-      return(paste(elem, collapse = delim))
+      paste(elem, collapse = delim)
     }
   }
 

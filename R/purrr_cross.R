@@ -20,8 +20,8 @@ purrr_cross <- function(.l) {
   # precompute indices for each column
   indices <- lapply(seq_len(n), function(j) {
     rep(seq_len(lengths[j]),
-        times = if (j == n) 1 else prod(lengths[(j+1):n]),
-        each = if (j == 1) 1 else prod(lengths[1:(j-1)])
+        times = if (j == n) 1 else prod(lengths[(j + 1):n]),
+        each = if (j == 1) 1 else prod(lengths[1:(j - 1)])
     )
   })
 
