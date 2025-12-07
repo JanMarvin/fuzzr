@@ -213,21 +213,29 @@ assertthat::on_failure(is_named) <- function(call, env) {
 
 # Cross a list of named lists
 named_cross_n <- function(ll) {
-  # Use !!! to splice the list, and transpose to convert the Tibble to a List of Lists
-  crossed_values <- purrr::transpose(tidyr::expand_grid(!!!ll))
 
-  # ... and then cross the names
+  # The original argument names (e.g., "subset", "data", "formula")
+  argument_names <- names(ll)
+
+  # Use the custom function to reliably cross the values
+  crossed_values <- purrr_cross(ll)
+
+  # Cross the names (e.g., "int_single", "data", "formula")
   crossed_names <- purrr::transpose(tidyr::expand_grid(!!!purrr::map(ll, names)))
 
-  # Now map2 iterates over the *rows* (combinations) just like purrr::cross did
+  # Now map2 iterates over the *rows* (combinations)
   purrr::map2(crossed_values, crossed_names, function(x, y) {
+
+    # 1. Map the test name (y) and test value (x) together.
+    # 2. Set the names of this combined list to the actual argument names.
     purrr::map2(x, y, function(m, n) {
       list(
         test_name = n,
         test_value = m
       )
-    })
-  })
+    }) |> purrr::set_names(argument_names)
+
+  }) |> purrr::set_names(NULL) # Ensures the outer list has no confusing names
 }
 
 # Custom tryCatch/withCallingHandlers

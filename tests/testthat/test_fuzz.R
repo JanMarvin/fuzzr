@@ -87,7 +87,7 @@ test_that("Values can be extracted from a fuzz_results object by index", {
   expect_null(lm_1_val)
   expect_equivalent(lm_1_call$fun, "lm")
   expect_equivalent(lm_1_call$args$subset, character(0))
-  # expect_s3_class(lm_single_val, "lm")
+  expect_s3_class(lm_single_val, "lm")
   expect_equivalent(lm_single_call$fun, "lm")
   expect_equivalent(lm_single_call$args$subset, 1L)
 })
