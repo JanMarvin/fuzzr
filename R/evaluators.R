@@ -51,6 +51,11 @@ fuzz_function <- function(fun, arg_name, ..., tests = test_all(), check_args = T
   # keeping only those passed in as ...
 
   .dots <- list(...)
+  mc <- match.call(expand.dots = FALSE)
+  dots_call_names <- if (!is.null(mc$...))
+    purrr::map_chr(as.list(mc$...), deparse)
+  else
+    character(0)
 
   # Check that arg_name is a string, and the tests passed is a named list
   assertthat::assert_that(assertthat::is.string(arg_name), is_named_l(tests))
@@ -64,11 +69,17 @@ fuzz_function <- function(fun, arg_name, ..., tests = test_all(), check_args = T
   }
 
   # Construct a list of arguments for p_fuzz_function.
-  # We pair the 'tests' with 'arg_name', and wrap the static '...' args into lists
-  # so they are treated as single-item test lists by p_fuzz_function.
+  # Pair the 'tests' with 'arg_name', and wrap the static '...' args into
+  # single-item test lists, applying their call names using map2.
+  dot_test_args <- purrr::map2(
+    .x = .dots,
+    .y = dots_call_names,
+    .f = function(x, y) purrr::set_names(list(x), y)
+  )
+
   test_args <- c(
     purrr::set_names(list(tests), arg_name),
-    purrr::map2(.dots, names(.dots), function(x, y) purrr::set_names(list(x), y))
+    dot_test_args
   )
 
   p_fuzz_function(fun, .l = test_args, check_args = check_args, progress = progress)
