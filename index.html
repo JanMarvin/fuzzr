@@ -102,26 +102,22 @@
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fuzz_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fuzz_function.html">fuzz_function</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">lm</span>, arg_name <span class="op">=</span> <span class="st">"subset"</span>, data <span class="op">=</span> <span class="va">iris</span>, </span>
 <span>                              formula <span class="op">=</span> <span class="va">Sepal.Length</span> <span class="op">~</span> <span class="va">Petal.Width</span> <span class="op">+</span> <span class="va">Petal.Length</span>, </span>
-<span>                              tests <span class="op">=</span> <span class="fu"><a href="reference/test_all.html">test_all</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: `cross_n()` is deprecated; please use `cross()` instead.</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning: `cross_n()` is deprecated; please use `cross()` instead.</span></span>
-<span><span class="co">#&gt; Warning: at_depth() is deprecated, please use `modify_depth()` instead</span></span></code></pre></div>
+<span>                              tests <span class="op">=</span> <span class="fu"><a href="reference/test_all.html">test_all</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>You can render these results as a data frame:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fuzz_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fuzz_results</span><span class="op">)</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">fuzz_df</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table style="width:100%;" class="table">
 <colgroup>
-<col width="15%">
-<col width="3%">
-<col width="30%">
-<col width="4%">
-<col width="6%">
-<col width="6%">
-<col width="12%">
 <col width="11%">
-<col width="10%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">subset</th>
@@ -131,7 +127,7 @@
 <th align="left">messages</th>
 <th align="left">warnings</th>
 <th align="left">errors</th>
-<th align="left">result_classes</th>
+<th align="left">value_classes</th>
 <th align="right">results_index</th>
 </tr></thead>
 <tbody>
@@ -215,23 +211,19 @@
 <p>Specify multiple-argument tests with <code>p_fuzz_function</code>, passing a named list of arguments and tests to run on each. <code>p_fuzz_function</code> will test every combination of argument and variable.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fuzz_p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fuzz_function.html">p_fuzz_function</a></span><span class="op">(</span><span class="va">agrep</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="fu"><a href="reference/test_all.html">test_char</a></span><span class="op">(</span><span class="op">)</span>, x <span class="op">=</span> <span class="fu"><a href="reference/test_all.html">test_char</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: `cross_n()` is deprecated; please use `cross()` instead.</span></span>
-<span></span>
-<span><span class="co">#&gt; Warning: `cross_n()` is deprecated; please use `cross()` instead.</span></span>
-<span><span class="co">#&gt; Warning: at_depth() is deprecated, please use `modify_depth()` instead</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">fuzz_p</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 64</span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fuzz_p</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <colgroup>
-<col width="10%">
-<col width="5%">
-<col width="3%">
-<col width="4%">
-<col width="37%">
-<col width="23%">
-<col width="7%">
-<col width="7%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">pattern</th>
@@ -240,7 +232,7 @@
 <th align="left">messages</th>
 <th align="left">warnings</th>
 <th align="left">errors</th>
-<th align="left">result_classes</th>
+<th align="left">value_classes</th>
 <th align="right">results_index</th>
 </tr></thead>
 <tbody>
@@ -255,8 +247,8 @@
 <td align="right">1</td>
 </tr>
 <tr class="even">
-<td align="left">char_single</td>
 <td align="left">char_empty</td>
+<td align="left">char_single</td>
 <td align="left">NA</td>
 <td align="left">NA</td>
 <td align="left">NA</td>
@@ -265,8 +257,8 @@
 <td align="right">2</td>
 </tr>
 <tr class="odd">
-<td align="left">char_single_blank</td>
 <td align="left">char_empty</td>
+<td align="left">char_single_blank</td>
 <td align="left">NA</td>
 <td align="left">NA</td>
 <td align="left">NA</td>
@@ -275,8 +267,8 @@
 <td align="right">3</td>
 </tr>
 <tr class="even">
-<td align="left">char_multiple</td>
 <td align="left">char_empty</td>
+<td align="left">char_multiple</td>
 <td align="left">NA</td>
 <td align="left">NA</td>
 <td align="left">argument ‘pattern’ has length &gt; 1 and only the first element will be used</td>
@@ -285,8 +277,8 @@
 <td align="right">4</td>
 </tr>
 <tr class="odd">
-<td align="left">char_multiple_blank</td>
 <td align="left">char_empty</td>
+<td align="left">char_multiple_blank</td>
 <td align="left">NA</td>
 <td align="left">NA</td>
 <td align="left">argument ‘pattern’ has length &gt; 1 and only the first element will be used</td>
@@ -295,8 +287,8 @@
 <td align="right">5</td>
 </tr>
 <tr class="even">
-<td align="left">char_with_na</td>
 <td align="left">char_empty</td>
+<td align="left">char_with_na</td>
 <td align="left">NA</td>
 <td align="left">NA</td>
 <td align="left">argument ‘pattern’ has length &gt; 1 and only the first element will be used</td>
